@@ -7,15 +7,40 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="app">
     <div class="disclaimer" id="disclaimer">
         Disclaimer: All medicine names and prices used in this application are fictional and do not represent any real medicine(s).
     </div>
     <header>
-        <h1>Medicine Tracker</h1>
+        <h1 class="med_header shadow">Medicine Tracker</h1>
+        <div style="
+        flex: 2;
+        margin: 20px;
+        "></div>
     </header>
     <main>
+        <div class="container left shadow-heavy">
+            <form class="create-medicine">
+                <div class="input-box">
+                    <label for="mName">Medicine Name</label>
+                    <input type="text" id="mName" name="name" placeholder="Medicine Name" required>
+                </div>
+                <div class="input-box">
+                    <label for="mPrice">Medicine Price (£)</label>
+                    <input type="number" step="0.01" id="mPrice" name="price" placeholder="Medicine Price" required>
+                </div>
+            <input type="submit">
+            </form>
+            <p class="average-price"></p>
+        </div>
+        <div class="container right shadow-heavy">
+        </div>
 
     </main>
+    </div>
     <script src="script.js"></script>
+    <style>
+
+    </style>
 </body>
 </html>

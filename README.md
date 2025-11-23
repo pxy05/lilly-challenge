@@ -1,117 +1,42 @@
-# Lilly Technical Challenge - Software Engineer Placement Students
-A repository containing the Eli Lilly student developer technical challenge.
+# Lilly Technical Challenge Documentation Template
 
-**Disclaimer:** All medicines in the fake database (`backend/data.json`) are fictional and do not represent real medicines.
+## Approach
 
-## Introduction
-This takehome task was developed in order to test the basic skillset of a JavaScript/Python developer.
- 
-The task consists of backend and frontend functionalities.
- 
-You aren’t expected to spend more than 30-60 minutes on this task (we respect your time, you don’t have to complete the task).
- 
-You are free to use the internet but must solve this task yourself.
- 
-During your interview you will be asked to present (in any way you like) your thought process on how you went about completing this task.
-
-## Getting Started
-This challenge consists of a backend written in [Python](https://www.python.org/) and a frontend written using HTML, CSS and JavaScript.
-
-1. You will need to install Python in order to run the backend server. See the link above or go [here](https://www.python.org/downloads/).
-2. You will need to install Git to handle commits and source code management. You can download Git [here](https://git-scm.com/downloads). When prompted, ensure you add the Git executable to your system's `PATH`. If you get errors like `not found: Git`, follow [this guide](https://stackoverflow.com/questions/26620312/git-installing-git-in-path-with-github-client-for-windows) to add it to `PATH` manually.
-3. You will likely want to use an Integrated Development Environment (IDE) or Code Editor. We recommend [Visual Studio Code](https://code.visualstudio.com/Download).
-4. You will need a GitHub account in order to [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) this repository and [commit](https://github.com/git-guides/git-commit) your changes.
-
-### Verifying Installation
-Run the following commands to confirm that your installations succeeded:
-```bash
-python --version
-git -v
-```
-You should see version numbers in the terminal (or whatever command-executing environment you ran the above commands in) if they were installed correctly. If you get errors, ensure the installation was successful and that the Python and Git executables were added to your [system `PATH`](https://stackoverflow.com/questions/44272416/how-to-add-a-folder-to-path-environment-variable-in-windows-10-with-screensho).
-
-### Git Beginner Guide
-
-If you are struggling to get started with the GitHub side of things, you can follow the below basic instructions:
-
-1. Make a new folder on your local machine that you would like to store this challenge's source code in.
-2. Open a terminal (Linux, MacOS) or PowerShell (Windows), or alternatively use the built-in terminal of your IDE (i.e. VSCode terminal), and traverse to the folder you created in step one.
-3. Clone the challenge repository into the folder:
-
-```bash
-git clone https://github.com/SamThompson95/lilly-recruitment-challenge.git
-cd lilly-recruitment-challenge
-```
-
-4. Set up the remote repository URL to point to your own repository. You can do this by running the following commands:
-
-```bash
-git remote rename origin upstream
-git remote add origin <your-repo-url>
-```
-
-5. When you make changes you would like to commit (save), you can follow the below steps:
-```bash
-git add <file-name-that-has-changes>
-git commit -m "<meaningful-commit-message>"
-git push
-```
-*Ensure you have a remote repository set up on GitHub. You will be committing and pushing changes from your local Git repository to the remote GitHub repository. You can go [here](https://github.com/new) to create a new repository, and [here](https://docs.github.com/en/get-started/using-git/about-git) to understand the basics of Git. If you have difficulty setting up the remote upstream repository via the Git CLI, see [this guide](https://devopscube.com/set-git-upstream-respository-branch/) on how to do that.*
-
-### Environment Setup
-Once you have installed Python and Git, have your IDE set up, and have cloned the repository, you can use one of the provided `start` scripts to activate the [Python virtual environment](https://docs.python.org/3/library/venv.html), install Python dependencies, and start the backend server.
-
-Setup scripts are provided for Mac, Linux and Windows. You can run the appropriate script for your operating system to get started.
-
-#### Mac/Linux
-```bash
-./start.sh
-```
-
-#### Windows
-```bash
-./start.ps1
-
-# or
-
-./start.bat
-```
-
-*If you experience errors when running one of the above scripts, try deleting the `venv` folder and running the script again. Alternatively, you can manually create a virtual environment and install the dependencies by following the steps in the script.*
-
-## Tips and Tricks
-- Upon running the backend server, you can use a tool like [Postman](https://www.postman.com/downloads/) to test the API endpoints. This will allow you to see the data that is being returned from the server.
-    - For example, you can use Postman to send a `GET` request to the `http://localhost:8000/medicines` endpoint to see the data that is being returned from the server. 
-- You should be able to see the frontend by opening the `index.html` file in your browser. You can also use the browser's developer tools to debug the frontend code.
+- Initially, I went over the existing code base and gauged how much time I should allocate to where.
+- API was mostly finished just a few validation checks and http best practices to be implemented so I decided I would spend less time on it and come back if time allowed.
+- Frontend was completely bare so i dedicated the most time there.
 
 ## Objectives
-- Fetch data from the backend server and send it to the the frontend, displaying it in a user-friendly way.
-- A data engineer had some issues migrating data, leaving some gaps in our database. How can you ensure that the frontend handles missing/invalid data returned from the APIs without crashing?
-- You can send data to the backend via the available API(s), however it is not particularly user-friendly. How will you create a user-friendly solution that allows users to input data on the site and send it to the backend?
-- The frontend site's design leaves a lot to be desired. Can you make any improvements to the overall design and user experience? (this one is open-ended; feel free to be creative here!)
-- You are provided a documentation template and are encouraged to fill this out as you work through this challenge. This will help when it comes time to present your work.
+- One thing I noticed was the URLs contained both nouns and verbs which is not best practice for HTTP so I made the quick change e.g. @app.delete(/delete) -> @app.delete(/medicines)
+- Another thing was that there was no input validation which was relatively staighforward to implement. I did make some assumptions as there was no openAPI specification.
 
-## Optional Objectives
-*These objectives can be completed if you have time or would like to be challenged.*
-  
-- The boss has asked me for a quarterly report. Can you create a backend function for averaging prices of all our medicines?
+## Problems Faced
+- I had not used openAPI before but a lot of the code was already written which meant I only had to use normal python for validation, imports etc.
+- I did have to read some documentation regarding things like app.delete app.get Path Body.
+- Had to deal with edge cases regarding null prices or empty medicine names already existing in the database.
 
-## Scope
+## Evaluation
+- RESTful best practices implemented e.g. /create -> /medicines method: "POST"
+- I was quite familiar with both python, js, html, css, and http/api practices which I feel gave me a leg up.
+- Overall, the API handles most requests well including misconfigured requests by giving detailed error codes and reasons for them.
+- created method to prevent code duplication e.g. does_med_exist()
+- Module testing for the API was done via Postman which achieved 100% coverage
+- The same thing goes for deleting medicines
+- Added pydantic models for better api documentation and just generally better for consistency and type safety
+- Added quite a lot of logging involved which would help with debugging, production monitoring, maintainability
+- name="" or price=null cases are handled in the front end to avoid errors. Important because those values exist in the database for some reason
+- average was implemented both in front and back end
+- Didn't use the single /medicines/{name} API endpoint therefore didnt impement the js to save time on other features.
 
-### In Scope (You may modify these)
-- main.py
-- the whole frontend folder:
-    - script.js
-    - style.css
-    - index.html
-- DOCUMENTATION.md (fill this out as you work through the challenge)
-- DOCUMENTATION.docx (fill this out as you work through the challenge)
 
-*Note: You only need to fill out one of the documentation files. Choose one of the documentation templates and feel free to delete the other. Alternatively, create your own documentation file in any format you wish.*
-
-### Out of Scope (Do not modify these)
- - data.json
- - requirements.txt
- - start.sh
- - start.ps1
- - start.bat
+### Improvements
+- If I had the time I would have implemented some sort of database class / object with appropriate methods to abstract database features allowing for better maintainability, reduced code duplication, and seperation of concern especially in relation to the handlers as everything has relatively low cohesion.
+- I would improve the file structure to adhere to the openAPI best practices in order to improve codebase navigation, maintainability, seperation of business logic and handlers etc
+- I had no time to do unit testing which I had to make the difficult decision to leave out due to time. To improve I would definitely implement it in the backend and frontend js.
+- One large thing is that I return a lot of the http codes in the body rather than doing something like raise HTTPException which would greatly help
+- I didn't manage to implemenet all CRUD operations into the UI however the code exists for it.
+- Potential race conditions using fastAPI to access data.json
+- Could improve the underlying datastructure for database JSON file -> hashmap which leads to O(n) -> O(1)
+- Could just keep the data in memory then write to a file during shutdown
+- Inconsistent error handling e.g. HTTPException and body response codes. If I was more familiar with fastAPI I could have kept things the same throughout.
+- no input validation and or errors shown in UI apart from missing fields.

@@ -30,3 +30,156 @@ body {
 }
 
 /* ---- Your custom styles below ---- */
+
+.medicine-item {
+    border-radius: 12px;
+
+}
+
+body {
+    background-color: var(--first-color);
+    color: var(--third-color);
+    width: 100vw;
+    height: 100vh;
+    --first-color: #fffbf5;
+    --second-color: #929aab;
+    --third-color: #474a56;
+    --fourth-color: #0b0b0d;
+}
+
+header {
+    width: 100vw;
+    display: flex;
+
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    text-align: center;
+
+    width: 100vw;
+}
+
+.med_header {
+    padding: 20px 0px 20px 20px;
+    border-radius: 12px;
+    margin: 20px;
+
+    flex: 1;
+}
+
+.shadow {
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+}
+
+.shadow-heavy {
+    box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+}
+
+.container {
+    background-color: var(--first-color);
+
+    margin: 20px;
+    height: 80vh;
+
+    border-radius: 15px;
+    border-style:solid;
+    border-width: 2px;
+    border-color: rgba(207, 207, 207, 0.37);
+
+    padding: 20px;
+}
+
+.left {
+    flex: 1;
+}
+
+.right {
+    flex: 2;
+
+    overflow-y: scroll;
+
+    padding: 10px;
+}
+
+.medicine-list {
+    margin: 10px;
+
+}
+
+.medicine-item {
+    padding: 10px;
+    margin: 10px;
+
+    max-height: 10%;
+    min-height: 10%;
+
+    display: flex;
+    flex-direction: row;
+}
+
+.update-error {
+    color: red;
+}
+
+.editForm {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    padding: 10px;
+
+    border-radius: 15px;
+    border-width: 2px;
+
+    max-width: 50%;
+}
+  
+  .editFormItem {
+    text-align: center;
+}
+
+.medicine-item-details {
+    flex: 1;
+}
+
+.medicine-item-edit {
+    flex: 1;
+}
+
+.create-medicine {
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+
+    width: 100%;
+}
+
+.input-box {
+    margin: 10px;
+}
+
+.avg-price {
+    font-weight: bold;
+}
+
+label {
+}
+
+input {
+    margin-top: 10px;
+    width: 80%;
+    padding: 20px;
+
+    text-align: center;
+}

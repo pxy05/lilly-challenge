@@ -1,28 +1,13 @@
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-"""
-This module defines a FastAPI application for managing a list of medicines.
-It provides endpoints to retrieve all medicines, retrieve a single medicine by name,
-and create a new medicine.
-Endpoints:
-- GET /medicines: Retrieve all medicines from the data.json file.
-- GET /medicines/{name}: Retrieve a single medicine by name from the data.json file.
-- POST /create: Create a new medicine with a specified name and price.
-- POST /update: Update the price of a medicine with a specified name.
-- DELETE /delete: Delete a medicine with a specified name.
-Functions:
-- get_all_meds: Reads the data.json file and returns all medicines.
-- get_single_med: Reads the data.json file and returns a single medicine by name.
-- create_med: Reads the data.json file, adds a new medicine, and writes the updated data back to the file.
-- update_med: Reads the data.json file, updates the price of a medicine, and writes the updated data back to the file.
-- delete_med: Reads the data.json file, deletes a medicine, and writes the updated data back to the file.
-Usage:
-Run this module directly to start the FastAPI application.
-"""
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional
 import uvicorn
 import json
+import logging
 
 app = FastAPI()
+logging.basicConfig(level=logging.INFO)
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,99 +17,233 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/medicines")
+INTERNAL_SERVER_ERROR = HTTPException(
+    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    detail="Internal server error"
+)
+
+class Medicine(BaseModel):
+    name: str
+    price: Optional[float] = None
+
+class CreateMedicineRequest(BaseModel):
+    name: str = Field(..., min_length=1)
+    price: float = Field(..., ge=0)
+
+    @field_validator('name')
+    @classmethod
+    def name_not_empty(cls, v):
+        if v.strip() == "":
+            raise ValueError('Name cannot be empty string')
+        return v.strip()
+
+class UpdateMedicineRequest(BaseModel):
+    price: float = Field(..., ge=0)
+
+class MedicineResponse(BaseModel):
+    code: int
+    medicine: Optional[Medicine] = None
+    message: Optional[str] = None
+    error: Optional[str] = None
+
+class AverageResponse(BaseModel):
+    code: int
+    average_price: Optional[float] = None
+
+def does_med_exist(name: str) -> bool:
+    try:
+        with open('data.json') as meds:
+            data = json.load(meds)
+            for med in data["medicines"]:
+                if med['name'] == name:
+                    return True
+        return False
+    except Exception as e:
+        logging.error(e)
+        raise INTERNAL_SERVER_ERROR
+
+@app.get("/medicines", status_code=status.HTTP_200_OK)
 def get_all_meds():
-    """
-    This function reads the data.json file and returns all medicines.
-    Returns:
-        dict: A dictionary of all medicines
-    """
-    with open('data.json') as meds:
-        data = json.load(meds)
+
+    data = {}
+    try:
+        with open('data.json') as meds:
+            data = json.load(meds)
+    except Exception as e:
+        logging.error(e)
+        raise INTERNAL_SERVER_ERROR
+    
+    logging.info(f"Successful /medicines call")
     return data
 
-@app.get("/medicines/{name}")
+@app.get("/medicines/{name}", status_code=status.HTTP_200_OK, response_model=MedicineResponse)
 def get_single_med(name: str):
-    """
-    This function reads the data.json file and returns a single medicine by name.
-    Args:
-        name (str): The name of the medicine to retrieve.
-    Returns:
-        dict: A dictionary containing the medicine details
-    """
-    with open('data.json') as meds:
-        data = json.load(meds)
-        for med in data["medicines"]:
-            print(med)
-            if med['name'] == name:
-                return med
-    return {"error": "Medicine not found"}
 
-@app.post("/create")
-def create_med(name: str = Form(...), price: float = Form(...)):
-    """
-    This function creates a new medicine with the specified name and price.
-    It expects the name and price to be provided as form data.
-    Args:
-        name (str): The name of the medicine.
-        price (float): The price of the medicine.
-    Returns:
-        dict: A message confirming the medicine was created successfully.
-    """
-    with open('data.json', 'r+') as meds:
-        current_db = json.load(meds)
-        new_med = {"name": name, "price": price}
-        current_db["medicines"].append(new_med)
-        meds.seek(0)
-        json.dump(current_db, meds)
-        meds.truncate()
+    name = name.strip()
+
+    if (name == ""):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Name cannot be empty string"
+        )
+
+
+    medicine = {}
+    try:
+        with open('data.json') as meds:
+            data = json.load(meds)
+            for med in data["medicines"]:
+                if med['name'] == name:
+                    medicine = med
+
+    except Exception as e:
+        logging.error(e)
+        raise INTERNAL_SERVER_ERROR
+
+    if (medicine == {}):
+        logging.info(f"Medicine: '{name}' not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Medicine not found"
+        )
+    else:
+        return {
+            "code": 200,
+            "medicine": medicine
+        }
+
+
+
+@app.post("/medicines", status_code=status.HTTP_201_CREATED, response_model=MedicineResponse)
+def create_med(medicine: CreateMedicineRequest):
+
+    if does_med_exist(medicine.name):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Medicine already exists"
+        )
+
+    try:
+        with open('data.json', 'r+') as meds:
+            db = json.load(meds)
+            new_med = {"name": medicine.name, "price": medicine.price}
+            db["medicines"].append(new_med)
+            meds.seek(0)
+            json.dump(db, meds)
+            meds.truncate()
         
-    return {"message": f"Medicine created successfully with name: {name}"}
+        result = get_single_med(medicine.name)
+        return {
+            "code": 201,
+            "message": f"Medicine created successfully with name: {medicine.name}",
+            "medicine": result["medicine"]
+            }
+    except Exception as e:
+        logging.error(e)
+        raise INTERNAL_SERVER_ERROR
+        
 
-@app.post("/update")
-def update_med(name: str = Form(...), price: float = Form(...)):
-    """
-    This function updates the price of a medicine with the specified name.
-    It expects the name and price to be provided as form data.
-    Args:
-        name (str): The name of the medicine.
-        price (float): The new price of the medicine.
-    Returns:
-        dict: A message confirming the medicine was updated successfully.
-    """
-    with open('data.json', 'r+') as meds:
-        current_db = json.load(meds)
-        for med in current_db["medicines"]:
-            if med['name'] == name:
-                med['price'] = price
-                meds.seek(0)
-                json.dump(current_db, meds)
-                meds.truncate()
-                return {"message": f"Medicine updated successfully with name: {name}"}
-    return {"error": "Medicine not found"}
 
-@app.delete("/delete")
-def delete_med(name: str = Form(...)):
-    """
-    This function deletes a medicine with the specified name.
-    It expects the name to be provided as form data.
-    Args:
-        name (str): The name of the medicine to delete.
-    Returns:
-        dict: A message confirming the medicine was deleted successfully.
-    """
-    with open('data.json', 'r+') as meds:
-        current_db = json.load(meds)
-        for med in current_db["medicines"]:
-            if med['name'] == name:
-                current_db["medicines"].remove(med)
-                meds.seek(0)
-                json.dump(current_db, meds)
-                meds.truncate()
-                return {"message": f"Medicine deleted successfully with name: {name}"}
-    return {"error": "Medicine not found"}
+@app.patch("/medicines/{name}", status_code=status.HTTP_200_OK, response_model=MedicineResponse)
+def update_med(name: str, update_data: UpdateMedicineRequest):
+
+    name = name.strip()
+    
+    if (name == ""):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Name cannot be empty string"
+        )
+
+    try:
+        with open('data.json', 'r+') as meds:
+            db = json.load(meds)
+            for med in db["medicines"]:
+                if med['name'] == name:
+                    med['price'] = update_data.price
+                    meds.seek(0)
+                    json.dump(db, meds)
+                    meds.truncate()
+                    result = get_single_med(name)
+                    return {
+                        "code": 200,
+                        "message": f"Medicine updated successfully with name: {name}",
+                        "medicine": result["medicine"]
+                        }
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Medicine not found"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(e)
+        raise INTERNAL_SERVER_ERROR
+
+@app.delete("/medicines/{name}", status_code=status.HTTP_200_OK, response_model=MedicineResponse)
+def delete_med(name: str):
+
+    name = name.strip()
+    
+    if (name == ""):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Name cannot be empty string"
+        )
+    try:
+        with open('data.json', 'r+') as meds:
+            db = json.load(meds)
+            for med in db["medicines"]:
+                if med['name'] == name:
+                    db["medicines"].remove(med)
+                    meds.seek(0)
+                    json.dump(db, meds)
+                    meds.truncate()
+                    return {
+                        "code": 200,
+                        "message": f"Medicine deleted successfully with name: {name}"
+                        }
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Medicine not found"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(e)
+        raise INTERNAL_SERVER_ERROR
 
 # Add your average function here
+@app.get("/average", status_code=status.HTTP_200_OK, response_model=AverageResponse)
+def average_price():
+
+    total: float = float(0)
+    db_len: int = 0
+    
+    try:
+        with open('data.json', 'r+') as meds:
+            db = json.load(meds)
+            for med in db['medicines']:
+                price = med['price']
+                if (price is not None and isinstance(price, (float))):
+                    total += med['price']
+                    db_len += 1
+        
+            if db_len == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No medicines with prices found"
+                )
+        
+            return {
+                "code": 200,
+                "average_price": total/db_len
+                }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(e)
+        raise INTERNAL_SERVER_ERROR
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
